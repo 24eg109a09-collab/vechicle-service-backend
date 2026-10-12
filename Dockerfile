@@ -2,9 +2,17 @@ FROM maven:3.9.9-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
-COPY pom.xml .
+# Copy context files to support both repo root context and backend/ subfolder context
+COPY . /staging/
 
-COPY src ./src
+RUN if [ -f /staging/backend/pom.xml ]; then \
+        cp /staging/backend/pom.xml ./pom.xml && \
+        cp -r /staging/backend/src ./src; \
+    else \
+        cp /staging/pom.xml ./pom.xml && \
+        cp -r /staging/src ./src; \
+    fi && \
+    rm -rf /staging
 
 RUN mvn clean package -DskipTests
 
